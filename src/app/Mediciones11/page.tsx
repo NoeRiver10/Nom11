@@ -1,35 +1,42 @@
-// Página de Mediciones11 para el componente de mediciones
-
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAreasYpuestos, AreaData } from '../context/areaypuestos';
+import MedicionGenerica from '../components/componentesMediciones/medicionGenerica';
+import MedicionImpulsiva from '../components/componentesMediciones/medicionImpulsiva';
+import ResumenMediciones from '../components/componentesMediciones/resumenMediciones';
 
-// Importa el hook personalizado para el contexto
+interface MedicionData {
+  id: string;
+  area: string;
+  puesto: string;
+  altura: string;
+  tipoRuido: string;
+  valores: Record<string, number | string | null>;
+}
 
-export default function Mediciones11() {
+interface Mediciones11Props {
+  id: string; // ID recibido del reconocimiento sensorial
+}
+
+export default function Mediciones11({ id }: Mediciones11Props) {
   const router = useRouter();
-  const { areas } = useAreasYpuestos(); // Obtén los datos del contexto
+  const { areas } = useAreasYpuestos();
   const [selectedArea, setSelectedArea] = useState('');
   const [filteredPuestos, setFilteredPuestos] = useState<AreaData[]>([]);
   const [altura, setAltura] = useState('');
-  const [tipoRuido, setTipoRuido] = useState('');
-
-  useEffect(() => {
-    if (selectedArea) {
-      const filtered = areas.filter((area: AreaData) => area.area === selectedArea);
-      setFilteredPuestos(filtered);
-      if (filtered.length > 0 && filtered[0].tipoRuido) {
-        setTipoRuido(filtered[0].tipoRuido);
-      } else {
-        setTipoRuido('R-IM');
-      }
-    } else {
-      setFilteredPuestos([]);
-      setTipoRuido('R-IM');
-    }
-  }, [selectedArea, areas]);
+  const [tipoRuido, setTipoRuido] = useState(() => areas[0]?.tipoRuido || '');
+  const [tempMedicionData, setTempMedicionData] = useState<MedicionData>({
+    id: id, // Usar el ID recibido
+    area: '',
+    puesto: '',
+    altura: '',
+    tipoRuido: '',
+    valores: {},
+  });
+  const [mostrarResumen, setMostrarResumen] = useState(false);
+  const [todasLasMediciones, setTodasLasMediciones] = useState<MedicionData[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -42,10 +49,111 @@ export default function Mediciones11() {
     }
   };
 
+  const handleGuardarMediciones = useCallback(() => {
+    if (!selectedArea || !altura || !tipoRuido || !tempMedicionData) {
+      alert('Por favor, complete todos los campos antes de guardar.');
+      return;
+    }
+
+    const medicionDatosCompletos: MedicionData = {
+      ...tempMedicionData,
+      area: selectedArea,
+      puesto: filteredPuestos.length > 0 ? filteredPuestos[0].puesto : '',
+      altura,
+      tipoRuido,
+    };
+
+    setTodasLasMediciones((prevMediciones) => [...prevMediciones, medicionDatosCompletos]);
+
+    console.log('Datos de Mediciones Guardados:', JSON.stringify(medicionDatosCompletos, null, 2));
+  }, [selectedArea, filteredPuestos, altura, tipoRuido, tempMedicionData]);
+
+  useEffect(() => {
+    if (selectedArea) {
+      const filtered = areas.filter((area: AreaData) => area.area === selectedArea);
+      setFilteredPuestos(filtered);
+      if (filtered.length > 0 && filtered[0].tipoRuido) {
+        setTipoRuido(filtered[0].tipoRuido);
+      } else {
+        setTipoRuido('');
+      }
+    } else {
+      setFilteredPuestos([]);
+      setTipoRuido('');
+    }
+  }, [selectedArea, areas]);
+
+  const handleMedicionChange = useCallback((valores: Record<string, number | string | null>) => {
+    setTempMedicionData((prev) => ({
+      ...prev,
+      valores: {
+        ...prev.valores,
+        ...valores,
+      },
+    }));
+  }, []);
+
+  const handleAgregarPunto = () => {
+    if (!selectedArea || !altura || !tipoRuido || !tempMedicionData) {
+      alert('Por favor, complete todos los campos antes de agregar un punto.');
+      return;
+    }
+
+    const nuevoPunto: MedicionData = {
+      ...tempMedicionData,
+      id: `${selectedArea}-${Date.now()}`, // Generar un nuevo ID para el punto agregado
+      area: selectedArea,
+      puesto: filteredPuestos.length > 0 ? filteredPuestos[0].puesto : '',
+      altura,
+      tipoRuido,
+    };
+
+    setTodasLasMediciones((prevMediciones) => [...prevMediciones, nuevoPunto]);
+
+    // Limpiar los valores para una nueva entrada
+    setTempMedicionData({
+      id: '',
+      area: '',
+      puesto: '',
+      altura: '',
+      tipoRuido: '',
+      valores: {},
+    });
+
+    console.log('Nuevo Punto Agregado:', JSON.stringify(nuevoPunto, null, 2));
+  };
+
+  const handleIrAResumen = () => {
+    if (todasLasMediciones.length > 0) {
+      setMostrarResumen(true);
+    }
+  };
+
+  const handleVolver = () => {
+    setMostrarResumen(false);
+  };
+
+  if (mostrarResumen) {
+    return (
+      <ResumenMediciones
+        todasLasMediciones={todasLasMediciones}
+        onBack={handleVolver}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 p-8">
       <h1 className="text-4xl font-bold mb-8 text-blue-600 text-center">Mediciones</h1>
       <div className="bg-white p-6 rounded-lg shadow-md mb-4">
+
+        {/* Mostrar ID de Medición Actual */}
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-gray-700">
+            ID de Medición Actual: {tempMedicionData.id}
+          </h2>
+        </div>
+
         <div className="mb-4">
           <label className="block text-sm font-bold mb-2" htmlFor="area">
             Seleccionar Área
@@ -101,7 +209,7 @@ export default function Mediciones11() {
         </div>
         <div className="mb-4">
           <label className="block text-sm font-bold mb-2" htmlFor="tipoRuido">
-            Tipo de Ruido
+            Lectura
           </label>
           <select
             id="tipoRuido"
@@ -110,10 +218,49 @@ export default function Mediciones11() {
             onChange={(e) => handleChange(e)}
             className="w-full p-2 border rounded-md"
           >
-            <option value={filteredPuestos[0]?.tipoRuido || 'R-IM'}>{filteredPuestos[0]?.tipoRuido || 'R-IM'}</option>
+            <option value="">Seleccione el tipo de ruido</option>
+            <option value="R-ES">R-ES</option>
+            <option value="R-IN">R-IN</option>
             <option value="R-IM">R-IM</option>
           </select>
         </div>
+
+        {/* Renderizar el componente adecuado basado en el tipo de ruido */}
+        {tipoRuido && tipoRuido !== "R-IM" && (
+          <MedicionGenerica
+            tipoRuido={tipoRuido}
+            maxPeriodos={tipoRuido === "R-ES" ? 2 : 3}
+            maxPeriodosNPA={tipoRuido === "R-ES" ? 1 : 2}
+            intervaloFinMinutos={5}
+            intervaloInicioSiguientePeriodo={2}
+            onChange={handleMedicionChange}
+            mostrarSubtitulosValores={true}
+          />
+        )}
+        {tipoRuido === "R-IM" && (
+          <MedicionImpulsiva tipoRuido={tipoRuido} onChange={handleMedicionChange} />
+        )}
+
+        <button
+          onClick={handleGuardarMediciones}
+          className="mb-4 p-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700"
+        >
+          Guardar Mediciones
+        </button>
+
+        <button
+          onClick={handleAgregarPunto}
+          className="mb-4 ml-4 p-3 bg-yellow-600 text-white rounded-md font-semibold hover:bg-yellow-700"
+        >
+          Agregar Punto
+        </button>
+
+        <button
+          onClick={handleIrAResumen}
+          className="mb-4 p-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700"
+        >
+          Ir a Resumen
+        </button>
 
         <button
           onClick={() => router.push('/')}

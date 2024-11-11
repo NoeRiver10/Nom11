@@ -7,7 +7,7 @@ export interface AreaData {
   puntoEvaluacion: string;
   area: string;
   puesto: string;
-  numeroTrabajadoresExpuestos: string;
+  numeroTrabajadoresExpuestos: string; // Ya no es opcional
   descripcionActividades: string;
   ubicacion: string;
   fuenteEmisora: string;
@@ -20,7 +20,9 @@ export interface AreaData {
   tipoRuido: string;
   evaluacion: string;
   instrumento: string;
-  altura?: string; // Campo opcional de altura
+  altura: string; // Ya no es opcional
+  numTrabajadoresExpuestos: string; // Ya no es opcional
+  epp: string; // Ya no es opcional
 }
 
 // Definimos el tipo del contexto `AreasYpuestosContextType`

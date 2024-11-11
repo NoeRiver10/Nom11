@@ -37,6 +37,9 @@ export default function ReconocimientoOnce() {
       tipoRuido: "",
       evaluacion: "",
       instrumento: "",
+      altura: "", // Asegúrate de que siempre haya un valor (puede ser cadena vacía)
+      numTrabajadoresExpuestos: "", // Agrega un valor predeterminado para evitar que sea `undefined`
+      epp: "", // Agrega un valor predeterminado para evitar que sea `undefined`
     };
   }, []);
 
@@ -91,6 +94,9 @@ export default function ReconocimientoOnce() {
         tipoRuido: '',
         evaluacion: '',
         instrumento: '',
+        altura: "",
+        numTrabajadoresExpuestos: "",
+        epp: "",
       };
       return [...prevForms, newForm];
     });
@@ -120,8 +126,9 @@ export default function ReconocimientoOnce() {
   const handleSaveArea = () => {
     const currentArea = forms[currentFormIndex];
     const isDuplicate = areas.some(area => area.puntoEvaluacion === currentArea.puntoEvaluacion);
-
+  
     if (!isDuplicate && currentArea.area !== "") {
+      // Actualizar el contexto
       setAreas((prevAreas) => [...prevAreas, currentArea]);
       console.log("Área guardada:", currentArea);
       alert("Área guardada exitosamente");

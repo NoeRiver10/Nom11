@@ -17,6 +17,10 @@ interface ResumenAreasProps {
     tipoRuido: string;
     evaluacion: string;
     instrumento: string;
+    numTrabajadoresExpuestos: string;
+    descripcionActividades: string;
+    tiempoExposicion: string;
+    epp: string;
   }[];
 }
 
@@ -54,7 +58,7 @@ const ResumenAreas11: React.FC<ResumenAreasProps & { onBack: () => void, onEdit:
             {/* Detalles del Punto de Evaluación */}
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-2">Detalles del Punto de Evaluación:</h3>
-              <p>Punto de Evaluación: {area.area}</p>
+              <p>Área: {area.area}</p>
               <p>Puesto: {area.puesto}</p>
               <p>Ubicación: {area.ubicacion}</p>
               <p>Fuente Emisora: {area.fuenteEmisora}</p>
@@ -75,6 +79,15 @@ const ResumenAreas11: React.FC<ResumenAreasProps & { onBack: () => void, onEdit:
               <h3 className="text-lg font-semibold text-gray-800 mb-2">Evaluación e Instrumentación:</h3>
               <p>Evaluación: {area.evaluacion}</p>
               <p>Instrumento: {area.instrumento}</p>
+            </div>
+
+            {/* Datos Adicionales */}
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Datos Adicionales:</h3>
+              <p>No. de Trabajadores Expuestos: {area.numTrabajadoresExpuestos}</p>
+              <p>Descripción de las Actividades del Puesto: {area.descripcionActividades}</p>
+              <p>Tiempo de Exposición: {area.tiempoExposicion}</p>
+              <p>EPP: {area.epp}</p>
             </div>
           </div>
         ))}
